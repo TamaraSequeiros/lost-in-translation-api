@@ -1,17 +1,17 @@
 const rateLimit = require('express-rate-limit');
 
-const limiter = rateLimit({
-    // 10 requests per 5 minutes
-    windowMs: 5 * 60 * 1000,
-    max: 10,
-    keyGenerator: (req) => {
-        return req.header('X-Device-ID');
-    },
-    handler: (req, res) => {
-        res.status(429).json({
-            error: 'Too many requests from this device. Please try again later.'
-        });
-    }
+// Rate limit by device ID
+const deviceLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 10, // 10 requests per device
+    keyGenerator: (req) => req.header('X-Device-ID')
 });
 
-module.exports = limiter; 
+// Additional rate limit by IP
+const ipLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 30, // 30 requests per IP
+    keyGenerator: (req) => req.ip
+});
+
+module.exports = { deviceLimiter, ipLimiter }; 

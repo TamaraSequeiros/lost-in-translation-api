@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const corsOptions = require('./src/config/cors');
 const validateDevice = require('./src/middleware/deviceAuth');
-const limiter = require('./src/middleware/rateLimiter');
+const { deviceLimiter, ipLimiter } = require('./src/middleware/rateLimiter');
 const wordGuessRouter = require('./src/routes/wordGuess');
 
 const app = express();
@@ -14,8 +14,8 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors(corsOptions));
 
-// Apply device validation and rate limiting to API routes
-app.use('/api', validateDevice, limiter);
+// Apply both rate limiters
+app.use('/api', validateDevice, ipLimiter, deviceLimiter);
 
 // Routes
 app.use('/api', wordGuessRouter);

@@ -1,11 +1,10 @@
-const APP_SECRET = process.env.APP_SECRET;
+const devicesByIp = new Map();
 
 const validateDevice = (req, res, next) => {
     const deviceId = req.header('X-Device-ID');
-    const signature = req.header('X-Device-Signature');
     
-    if (!deviceId || !signature) {
-        return res.status(401).json({ error: 'Missing authentication' });
+    if (!deviceId) {
+        return res.status(401).json({ error: 'Device ID required' });
     }
 
     // Validate UUID format
@@ -14,13 +13,12 @@ const validateDevice = (req, res, next) => {
         return res.status(401).json({ error: 'Invalid Device ID format' });
     }
 
-    // Validate signature
-    const expectedSignature = Buffer.from(deviceId + APP_SECRET).toString('base64');
-    if (signature !== expectedSignature) {
-        return res.status(401).json({ error: 'Invalid signature' });
-    }
-
     next();
 };
+
+// Clean up old entries periodically
+setInterval(() => {
+    devicesByIp.clear();
+}, 24 * 60 * 60 * 1000); // Clear daily
 
 module.exports = validateDevice; 
